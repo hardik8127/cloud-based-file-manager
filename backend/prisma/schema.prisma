@@ -27,4 +27,49 @@ model User {
   resetPasswordToken   String?
   resetPasswordExpires DateTime?
   googleId             String?   @unique
+  folders              Folder[]
+  files                File[]
+}
+
+model Folder {
+  id        String   @id @default(uuid())
+  name      String
+  userId    String
+  parentId  String? // For nested folders
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent   Folder?  @relation("FolderHierarchy", fields: [parentId], references: [id])
+  children Folder[] @relation("FolderHierarchy")
+  files    File[]
+}
+
+model File {
+  id            String   @id @default(uuid())
+  name          String
+  originalName  String
+  size          Int
+  mimeType      String
+  cloudinaryUrl String
+  cloudinaryId  String
+  userId        String
+  folderId      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folder Folder?     @relation(fields: [folderId], references: [id])
+  shares FileShare[]
+}
+
+model FileShare {
+  id          String    @id @default(uuid())
+  fileId      String
+  shareToken  String    @unique
+  permissions String // "view" or "download"
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  file File @relation(fields: [fileId], references: [id], onDelete: Cascade)
 }
