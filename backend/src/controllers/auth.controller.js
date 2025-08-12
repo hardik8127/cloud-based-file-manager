@@ -1,11 +1,11 @@
 import bcrypt from "bcryptjs";
-import { db } from "../libs/db.js";
+import { db } from "../configs/db.js";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import {
   sendVerificationEmail,
   sendPasswordResetEmail,
-} from "../libs/email.js";
+} from "../configs/email.js";
 
 export const registerUser = async (req, res) => {
   const { email, password, name } = req.body;
