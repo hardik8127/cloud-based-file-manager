@@ -53,6 +53,7 @@ export const validateFile = (req, res, next) => {
   
   if (req.files) {
     req.filesInfo = req.files.map(file => ({
+      name: file.originalname,
       originalName: file.originalname,
       mimeType: file.mimetype,
       size: file.size,

@@ -14,19 +14,13 @@ import {
   handleUploadError,
   uploadSingle,
   validateFile,
+  uploadMultiple
 } from "../middlewares/multer.middleware.js";
 
 const fileRoutes = express.Router();
 
-fileRoutes.post(
-  "/upload",
-  authMiddleware,
-  uploadSingle,
-  validateFile,
-  handleUploadError,
-  uploadFile
-);
-fileRoutes.post("/upload-multiple", authMiddleware, uploadMultipleFile);
+fileRoutes.post("/upload", authMiddleware, uploadSingle, validateFile, handleUploadError, uploadFile);
+fileRoutes.post("/upload-multiple", authMiddleware, uploadMultiple, validateFile, handleUploadError, uploadMultipleFile);
 fileRoutes.get("/get-user-files", authMiddleware, getUserFiles);
 fileRoutes.get("/:id", authMiddleware, getFileById);
 fileRoutes.put("/rename/:id", authMiddleware, renameFile);
