@@ -43,6 +43,7 @@ export const validateFile = (req, res, next) => {
   // Add file metadata to request
   if (req.file) {
     req.fileInfo = {
+      name: req.file.originalname,
       originalName: req.file.originalname,
       mimeType: req.file.mimetype,
       size: req.file.size,

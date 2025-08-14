@@ -38,7 +38,7 @@ export const uploadToCloudinary = async (fileBuffer, fileName, userId, folder = 
 
       uploadStream.end(fileBuffer);
     });
-    console.log(uploadStream)
+
 
     return {
       success: true,
