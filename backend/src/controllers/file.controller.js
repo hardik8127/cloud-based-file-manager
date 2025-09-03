@@ -4,6 +4,7 @@ import {
   deleteFromCloudinary,
 } from "../configs/cloudinary.js";
 import { ERROR_MESSAGES } from "../utils/constants.js";
+import axios from "axios";
 
 export const uploadFile = async (req, res) => {
   try {
@@ -484,5 +485,84 @@ export const moveFile = async (req, res) => {
 };
 
 export const downloadFile = async (req, res) => {
+  try {
+    const fileId = req.params.id;
+    const userId = req.user.id;
 
+    const file = await db.File.findFirst({
+      where: {
+        id: fileId,
+        userId: userId,
+      },
+      select: {
+        id: true,
+        name: true,
+        originalName: true,
+        cloudinaryUrl: true,
+        cloudinaryId: true,
+        size: true,
+        mimeType: true,
+        folder: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!file) {
+      return res.status(404).json({
+        success: false,
+        message: "File not found or you don't have permission to download it",
+      });
+    }
+
+    try {      
+
+      // Stream through server using axios (more secure, allows logging)
+      const response = await axios({
+        method: 'GET',
+        url: file.cloudinaryUrl,
+        responseType: 'stream'
+      });
+      
+      if (response.status !== 200) {
+        return res.status(500).json({
+          success: false,
+          message: "Failed to fetch file from storage",
+        });
+      }
+
+      // Set appropriate headers for file download
+      const filename = file.originalName || file.name;
+      const sanitizedFilename = filename.replace(/[^\w\s.-]/gi, '_'); // Sanitize filename
+      
+      res.setHeader('Content-Type', file.mimeType || 'application/octet-stream');
+      res.setHeader('Content-Disposition', `attachment; filename="${sanitizedFilename}"`);
+      res.setHeader('Content-Length', file.size);
+      res.setHeader('Cache-Control', 'no-cache');
+      
+      // Stream the file
+      response.data.pipe(res);
+
+      // Log the download (optional)
+      console.log(`File downloaded: ${file.name} by user ${userId}`);
+
+    } catch (fetchError) {
+      console.error('Error fetching file from Cloudinary:', fetchError);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to download file",
+      });
+    }
+
+  } catch (error) {
+    console.error("Error in downloadFile:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error downloading file",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
 };
